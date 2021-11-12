@@ -2,85 +2,85 @@ from flask_app import app
 from flask import render_template, redirect, request, session
 #connects model information to controller
 from flask_app.models.users import User
-from flask_app.models.sightings import Sightings
+from flask_app.models.medication import Medications
 
 @app.route('/dashboard')
 def dashboard():
     # if 'user_id' not in session:
     #     return redirect('/')
     logged_user = User.get_by_id({'id': session['user_id']})
-    all_reports = Sightings.get_all()
-    return render_template('display_page.html', user = logged_user, all_reports = all_reports)
+    all_meds = Medications.get_all()
+    return render_template('display_page.html', user = logged_user, all_meds = all_meds)
 
-@app.route('/report/<int:reports_id>')
-def sighting_info(reports_id):
+@app.route('/med/<int:meds_id>')
+def medication_info(meds_id):
     # if 'user_id' not in session:
     #     return redirect('/')
-    report = Sightings.get_by_id({'id':reports_id})
+    med = Medications.get_by_id({'id':meds_id})
     logged_user = User.get_by_id({'id': session['user_id']})
-    if not report:
+    if not med:
         return redirect('/dashboard')
-    return render_template('sighting_report.html', report = report, user = logged_user)
+    return render_template('med_info.html', med = med, user = logged_user)
 
 
 
 @app.route('/new')
-def new_sightings():
+def new_medications():
     # if 'user_id' not in session:
     #     return redirect('/')
-    return render_template('report_sighting.html')
+    return render_template('med_medication.html')
 
 
 
 @app.route('/create', methods=['POST'])
-def create_sighting():
-    if not Sightings.sighting_validate(request.form):
+def create_medication():
+    if not Medications.medication_validate(request.form):
         return redirect('/new') 
-    sighting = {
-        'location':request.form['location'],
-        'what_happened':request.form ['what_happened'],
-        'sighting_date':request.form ['sighting_date'],
-        'num_saquaches':request.form ['num_saquaches'],
+    medication = {
+        'instruction':request.form['instruction'],
+        'expiration_date':request.form ['expiration_date'],
+        'side_effects':request.form ['side_effects'],
+        'num_dosage':request.form ['num_dosage'],
         'user_id':session['user_id'],
     }
-    Sightings.create(sighting)
+    Medications.create(medication)
     return redirect('/dashboard')
 
 
 
-@app.route('/edit/<int:reports_id>')
-def edit_sighting(reports_id):
+@app.route('/edit/<int:meds_id>')
+def edit_medication(meds_id):
     # if 'user_id' not in session:
     #     return redirect('/')
-    reports_to_edit = Sightings.get_by_id({ 'id': reports_id})
-    if not reports_to_edit:
+    meds_to_edit = Medications.get_by_id({ 'id': meds_id})
+    if not meds_to_edit:
         return redirect('/display_page')
-    return render_template('edit_sighting.html', reports = reports_to_edit)
+    return render_template('edit_medication.html', meds = meds_to_edit)
 
 
 
-@app.route('/update/<int:reports_id>', methods=['POST','GET'])
-def update_sighting(reports_id):
+@app.route('/update/<int:meds_id>', methods=['POST','GET'])
+def update_medication(meds_id):
     # if 'user_id' not in session:
     #     return redirect('/')
-    if not Sightings.sighting_validate(request.form):
-        return redirect(f'/edit/{reports_id}')
+    if not Medications.medication_validate(request.form):
+        return redirect(f'/edit/{meds_id}')
     data = {
-        'id': reports_id,
-        'location': request.form['location'],
-        'what_happened': request.form['what_happened'],
-        'num_saquaches': request.form['num_saquaches'],
-        'sighting_date': request.form['sighting_date'],
+        'instruction':request.form['instruction'],
+        'expiration_date':request.form ['expiration_date'],
+        'side_effects':request.form ['side_effects'],
+        'num_dosage':request.form ['num_dosage'],
+        'user_id':session['user_id'],
         
     }
-    Sightings.update_one(data)
+    Medications.update_one(data)
     return redirect('/dashboard')
 
 
 
-@app.route('/delete/<int:reports_id>')
-def delete_sighting(reports_id):
+@app.route('/delete/<int:meds_id>')
+def delete_medication(meds_id):
     # if 'user_id' not in session:
     #     return redirect('/')    
-    Sightings.delete({ 'id': reports_id })
+    Medications.delete({ 'id': meds_id })
     return redirect('/dashboard')
