@@ -2,7 +2,7 @@ from flask_app.config.mysqlconnection import connectToMySQL
 from flask_app import app
 from flask import flash
 # the regex
-
+import re	
 # create a regular expression object that we'll use later   
 
 
@@ -12,13 +12,14 @@ class Medications:
 
     def __init__(self, data):
         self.id = data['id']
-        self.instructions = data['instructions']
-        self.expiration_date = data['expiration_date']
-        self.num_dosage = data['num_dosage']
         self.user_id = data['user_id']
+        self.instructions = data['instructions']
+        self.side_effects = data['side_effects']
+        self.given_date = data['given_date']
+        self.expiration_date = data['expiration_date']
         self.created_at = data['created_at']
         self.updated_at = data['updated_at']
-
+        self.posted_by = ['']
 
 # this method is not a normal query for table in most use cases
     @classmethod
@@ -41,8 +42,8 @@ class Medications:
 
 #pulls medication info by 
     @classmethod
-    def get_by_num_dosage(cls, data):
-        query = "SELECT * FROM medication WHERE num_dosage = %(num_dosage)s;"
+    def get_by_side_effects(cls, data):
+        query = "SELECT * FROM medication WHERE side_effects = %(side_effects)s;"
         results = connectToMySQL(cls.schema).query_db(query, data)
         if len(results) < 1:
             return False
@@ -52,14 +53,13 @@ class Medications:
 #creates new medication
     @classmethod
     def create(cls, data):
-        query = """INSERT INTO medication(user_id,instructions, expiration_date, num_dosage, created_at, updated_at)
-        VALUES (%(user_id)s, %(instructions)s, %(expiration_date)s, %(num_dosage)s,  NOW(), NOW());"""
+        query = """INSERT INTO medication(user_id,instructions, expiration_date, side_effects, given_date, created_at, updated_at)
+        VALUES (%(user_id)s, %(instructions)s, %(expiration_date)s, %(side_effects)s, %(given_date)s, NOW(), NOW());"""
         return connectToMySQL(cls.schema).query_db(query, data)
 
     @classmethod
     def update_one(cls, data):
-        query = """UPDATE medication SET instructions = %(instructions)s, num_dosage = %(num_dosage)s, 
-        expiration_date = %(expiration_date)s, updated_at = NOW() WHERE id = %(id)s;"""
+        query = "UPDATE medication SET instructions = %(instructions)s, side_effects = %(side_effects)s, given_date = %(given_date)s, expiration_date = %(expiration_date)s, updated_at = NOW() WHERE id = %(id)s;"
         connectToMySQL(cls.schema).query_db(query, data)
 
 
@@ -79,11 +79,11 @@ class Medications:
             flash('instructions must be at least 2 characters', 'instructions')
             is_valid = False
 
-        if not post_data['num_dosage']:
-            flash('num_dosage is required', 'num_dosage')
+        if not post_data['side_effects']:
+            flash('side_effects is required', 'side_effects')
             is_valid = False
-        elif len(post_data['num_dosage']) < 1:
-            flash('num_dosage must be at least 3 characters', 'num_dosage')
+        elif len(post_data['side_effects']) < 1:
+            flash('side_effects must be at least 3 characters', 'side_effects')
             is_valid = False
 
         if not post_data['expiration_date']:
